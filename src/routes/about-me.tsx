@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	createDirectory,
 	createFile,
 	markdown,
 	type TerminalRouteMatchData,
 } from "../lib/terminalContent";
 
-export const aboutIndexFile = createFile({
-	name: "index.md",
+export const aboutMeFile = createFile({
+	name: "about-me.md",
 	summary: "Short profile, strengths, and what kind of work to expect.",
+	route: "/about-me",
 	body: markdown([
 		"# Carl Grundberg",
 		"",
@@ -16,32 +16,20 @@ export const aboutIndexFile = createFile({
 		"",
 		"I like working on the layer where product thinking, frontend craft, and systems design overlap. The goal is usually the same: reduce complexity for users without hiding the important details from the team maintaining it.",
 		"",
-		"## Current interests",
+		"## Key competences",
 		"",
-		"- developer experience",
-		"- internal tools that remove repeated work",
-		"- resilient frontend architecture",
-		"- product interfaces that explain themselves",
-		"",
-		"> This site is intentionally structured like a filesystem. Use `cd` to move between sections and `cat` to read Markdown files.",
+		"- System architecture",
+		"- Full stack web developer",
+		"- Relational and analytical databases",
+		"- Server and serverless hosting",
 	]),
 });
 
-export const aboutDirectory = createDirectory({
-	name: "about",
-	title: "About",
-	route: "/about",
-	description:
-		"Background, working style, and how this portfolio is structured.",
-	directories: [],
-	files: [aboutIndexFile],
-});
-
-export const Route = createFileRoute("/about")({
+export const Route = createFileRoute("/about-me")({
 	loader: () =>
 		({
-			routeKey: "/about",
-			directory: aboutDirectory,
+			routeKey: "/about-me",
+			selectedFile: aboutMeFile,
 		}) satisfies TerminalRouteMatchData,
 	component: RouteComponent,
 });

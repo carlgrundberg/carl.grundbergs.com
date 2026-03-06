@@ -9,21 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as WorkRouteImport } from './routes/work'
+import { Route as SideProjectsRouteImport } from './routes/side-projects'
+import { Route as HobbiesRouteImport } from './routes/hobbies'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CareerRouteImport } from './routes/career'
-import { Route as AboutRouteImport } from './routes/about'
+import { Route as AboutMeRouteImport } from './routes/about-me'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProjectsWorkflowAutomationRouteImport } from './routes/projects.workflow-automation'
-import { Route as ProjectsTerminalPortfolioRouteImport } from './routes/projects.terminal-portfolio'
-import { Route as ProjectsAnalyticsWorkbenchRouteImport } from './routes/projects.analytics-workbench'
-import { Route as CareerStaffProductEngineerRouteImport } from './routes/career.staff-product-engineer'
-import { Route as CareerSeniorFullstackEngineerRouteImport } from './routes/career.senior-fullstack-engineer'
-import { Route as CareerFrontendEngineerRouteImport } from './routes/career.frontend-engineer'
+import { Route as WorkFrontendDeveloperHittahemRouteImport } from './routes/work.frontend-developer-hittahem'
+import { Route as WorkCtoExtellioRouteImport } from './routes/work.cto-extellio'
+import { Route as SideProjectsVbcRouteImport } from './routes/side-projects.vbc'
+import { Route as SideProjectsOlEventsRouteImport } from './routes/side-projects.ol-events'
+import { Route as SideProjectsElprIsRouteImport } from './routes/side-projects.elpr-is'
+import { Route as SideProjectsCarlGrundbergsComRouteImport } from './routes/side-projects.carl-grundbergs-com'
 
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
+const WorkRoute = WorkRouteImport.update({
+  id: '/work',
+  path: '/work',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SideProjectsRoute = SideProjectsRouteImport.update({
+  id: '/side-projects',
+  path: '/side-projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HobbiesRoute = HobbiesRouteImport.update({
+  id: '/hobbies',
+  path: '/hobbies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -31,14 +42,9 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CareerRoute = CareerRouteImport.update({
-  id: '/career',
-  path: '/career',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const AboutMeRoute = AboutMeRouteImport.update({
+  id: '/about-me',
+  path: '/about-me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -46,139 +52,157 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsWorkflowAutomationRoute =
-  ProjectsWorkflowAutomationRouteImport.update({
-    id: '/workflow-automation',
-    path: '/workflow-automation',
-    getParentRoute: () => ProjectsRoute,
+const WorkFrontendDeveloperHittahemRoute =
+  WorkFrontendDeveloperHittahemRouteImport.update({
+    id: '/frontend-developer-hittahem',
+    path: '/frontend-developer-hittahem',
+    getParentRoute: () => WorkRoute,
   } as any)
-const ProjectsTerminalPortfolioRoute =
-  ProjectsTerminalPortfolioRouteImport.update({
-    id: '/terminal-portfolio',
-    path: '/terminal-portfolio',
-    getParentRoute: () => ProjectsRoute,
-  } as any)
-const ProjectsAnalyticsWorkbenchRoute =
-  ProjectsAnalyticsWorkbenchRouteImport.update({
-    id: '/analytics-workbench',
-    path: '/analytics-workbench',
-    getParentRoute: () => ProjectsRoute,
-  } as any)
-const CareerStaffProductEngineerRoute =
-  CareerStaffProductEngineerRouteImport.update({
-    id: '/staff-product-engineer',
-    path: '/staff-product-engineer',
-    getParentRoute: () => CareerRoute,
-  } as any)
-const CareerSeniorFullstackEngineerRoute =
-  CareerSeniorFullstackEngineerRouteImport.update({
-    id: '/senior-fullstack-engineer',
-    path: '/senior-fullstack-engineer',
-    getParentRoute: () => CareerRoute,
-  } as any)
-const CareerFrontendEngineerRoute = CareerFrontendEngineerRouteImport.update({
-  id: '/frontend-engineer',
-  path: '/frontend-engineer',
-  getParentRoute: () => CareerRoute,
+const WorkCtoExtellioRoute = WorkCtoExtellioRouteImport.update({
+  id: '/cto-extellio',
+  path: '/cto-extellio',
+  getParentRoute: () => WorkRoute,
 } as any)
+const SideProjectsVbcRoute = SideProjectsVbcRouteImport.update({
+  id: '/vbc',
+  path: '/vbc',
+  getParentRoute: () => SideProjectsRoute,
+} as any)
+const SideProjectsOlEventsRoute = SideProjectsOlEventsRouteImport.update({
+  id: '/ol-events',
+  path: '/ol-events',
+  getParentRoute: () => SideProjectsRoute,
+} as any)
+const SideProjectsElprIsRoute = SideProjectsElprIsRouteImport.update({
+  id: '/elpr-is',
+  path: '/elpr-is',
+  getParentRoute: () => SideProjectsRoute,
+} as any)
+const SideProjectsCarlGrundbergsComRoute =
+  SideProjectsCarlGrundbergsComRouteImport.update({
+    id: '/carl-grundbergs-com',
+    path: '/carl-grundbergs-com',
+    getParentRoute: () => SideProjectsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/career': typeof CareerRouteWithChildren
+  '/about-me': typeof AboutMeRoute
   '/contact': typeof ContactRoute
-  '/projects': typeof ProjectsRouteWithChildren
-  '/career/frontend-engineer': typeof CareerFrontendEngineerRoute
-  '/career/senior-fullstack-engineer': typeof CareerSeniorFullstackEngineerRoute
-  '/career/staff-product-engineer': typeof CareerStaffProductEngineerRoute
-  '/projects/analytics-workbench': typeof ProjectsAnalyticsWorkbenchRoute
-  '/projects/terminal-portfolio': typeof ProjectsTerminalPortfolioRoute
-  '/projects/workflow-automation': typeof ProjectsWorkflowAutomationRoute
+  '/hobbies': typeof HobbiesRoute
+  '/side-projects': typeof SideProjectsRouteWithChildren
+  '/work': typeof WorkRouteWithChildren
+  '/side-projects/carl-grundbergs-com': typeof SideProjectsCarlGrundbergsComRoute
+  '/side-projects/elpr-is': typeof SideProjectsElprIsRoute
+  '/side-projects/ol-events': typeof SideProjectsOlEventsRoute
+  '/side-projects/vbc': typeof SideProjectsVbcRoute
+  '/work/cto-extellio': typeof WorkCtoExtellioRoute
+  '/work/frontend-developer-hittahem': typeof WorkFrontendDeveloperHittahemRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/career': typeof CareerRouteWithChildren
+  '/about-me': typeof AboutMeRoute
   '/contact': typeof ContactRoute
-  '/projects': typeof ProjectsRouteWithChildren
-  '/career/frontend-engineer': typeof CareerFrontendEngineerRoute
-  '/career/senior-fullstack-engineer': typeof CareerSeniorFullstackEngineerRoute
-  '/career/staff-product-engineer': typeof CareerStaffProductEngineerRoute
-  '/projects/analytics-workbench': typeof ProjectsAnalyticsWorkbenchRoute
-  '/projects/terminal-portfolio': typeof ProjectsTerminalPortfolioRoute
-  '/projects/workflow-automation': typeof ProjectsWorkflowAutomationRoute
+  '/hobbies': typeof HobbiesRoute
+  '/side-projects': typeof SideProjectsRouteWithChildren
+  '/work': typeof WorkRouteWithChildren
+  '/side-projects/carl-grundbergs-com': typeof SideProjectsCarlGrundbergsComRoute
+  '/side-projects/elpr-is': typeof SideProjectsElprIsRoute
+  '/side-projects/ol-events': typeof SideProjectsOlEventsRoute
+  '/side-projects/vbc': typeof SideProjectsVbcRoute
+  '/work/cto-extellio': typeof WorkCtoExtellioRoute
+  '/work/frontend-developer-hittahem': typeof WorkFrontendDeveloperHittahemRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/career': typeof CareerRouteWithChildren
+  '/about-me': typeof AboutMeRoute
   '/contact': typeof ContactRoute
-  '/projects': typeof ProjectsRouteWithChildren
-  '/career/frontend-engineer': typeof CareerFrontendEngineerRoute
-  '/career/senior-fullstack-engineer': typeof CareerSeniorFullstackEngineerRoute
-  '/career/staff-product-engineer': typeof CareerStaffProductEngineerRoute
-  '/projects/analytics-workbench': typeof ProjectsAnalyticsWorkbenchRoute
-  '/projects/terminal-portfolio': typeof ProjectsTerminalPortfolioRoute
-  '/projects/workflow-automation': typeof ProjectsWorkflowAutomationRoute
+  '/hobbies': typeof HobbiesRoute
+  '/side-projects': typeof SideProjectsRouteWithChildren
+  '/work': typeof WorkRouteWithChildren
+  '/side-projects/carl-grundbergs-com': typeof SideProjectsCarlGrundbergsComRoute
+  '/side-projects/elpr-is': typeof SideProjectsElprIsRoute
+  '/side-projects/ol-events': typeof SideProjectsOlEventsRoute
+  '/side-projects/vbc': typeof SideProjectsVbcRoute
+  '/work/cto-extellio': typeof WorkCtoExtellioRoute
+  '/work/frontend-developer-hittahem': typeof WorkFrontendDeveloperHittahemRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
-    | '/career'
+    | '/about-me'
     | '/contact'
-    | '/projects'
-    | '/career/frontend-engineer'
-    | '/career/senior-fullstack-engineer'
-    | '/career/staff-product-engineer'
-    | '/projects/analytics-workbench'
-    | '/projects/terminal-portfolio'
-    | '/projects/workflow-automation'
+    | '/hobbies'
+    | '/side-projects'
+    | '/work'
+    | '/side-projects/carl-grundbergs-com'
+    | '/side-projects/elpr-is'
+    | '/side-projects/ol-events'
+    | '/side-projects/vbc'
+    | '/work/cto-extellio'
+    | '/work/frontend-developer-hittahem'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
-    | '/career'
+    | '/about-me'
     | '/contact'
-    | '/projects'
-    | '/career/frontend-engineer'
-    | '/career/senior-fullstack-engineer'
-    | '/career/staff-product-engineer'
-    | '/projects/analytics-workbench'
-    | '/projects/terminal-portfolio'
-    | '/projects/workflow-automation'
+    | '/hobbies'
+    | '/side-projects'
+    | '/work'
+    | '/side-projects/carl-grundbergs-com'
+    | '/side-projects/elpr-is'
+    | '/side-projects/ol-events'
+    | '/side-projects/vbc'
+    | '/work/cto-extellio'
+    | '/work/frontend-developer-hittahem'
   id:
     | '__root__'
     | '/'
-    | '/about'
-    | '/career'
+    | '/about-me'
     | '/contact'
-    | '/projects'
-    | '/career/frontend-engineer'
-    | '/career/senior-fullstack-engineer'
-    | '/career/staff-product-engineer'
-    | '/projects/analytics-workbench'
-    | '/projects/terminal-portfolio'
-    | '/projects/workflow-automation'
+    | '/hobbies'
+    | '/side-projects'
+    | '/work'
+    | '/side-projects/carl-grundbergs-com'
+    | '/side-projects/elpr-is'
+    | '/side-projects/ol-events'
+    | '/side-projects/vbc'
+    | '/work/cto-extellio'
+    | '/work/frontend-developer-hittahem'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  CareerRoute: typeof CareerRouteWithChildren
+  AboutMeRoute: typeof AboutMeRoute
   ContactRoute: typeof ContactRoute
-  ProjectsRoute: typeof ProjectsRouteWithChildren
+  HobbiesRoute: typeof HobbiesRoute
+  SideProjectsRoute: typeof SideProjectsRouteWithChildren
+  WorkRoute: typeof WorkRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
+    '/work': {
+      id: '/work'
+      path: '/work'
+      fullPath: '/work'
+      preLoaderRoute: typeof WorkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/side-projects': {
+      id: '/side-projects'
+      path: '/side-projects'
+      fullPath: '/side-projects'
+      preLoaderRoute: typeof SideProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hobbies': {
+      id: '/hobbies'
+      path: '/hobbies'
+      fullPath: '/hobbies'
+      preLoaderRoute: typeof HobbiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -188,18 +212,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/career': {
-      id: '/career'
-      path: '/career'
-      fullPath: '/career'
-      preLoaderRoute: typeof CareerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/about-me': {
+      id: '/about-me'
+      path: '/about-me'
+      fullPath: '/about-me'
+      preLoaderRoute: typeof AboutMeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -209,88 +226,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/workflow-automation': {
-      id: '/projects/workflow-automation'
-      path: '/workflow-automation'
-      fullPath: '/projects/workflow-automation'
-      preLoaderRoute: typeof ProjectsWorkflowAutomationRouteImport
-      parentRoute: typeof ProjectsRoute
+    '/work/frontend-developer-hittahem': {
+      id: '/work/frontend-developer-hittahem'
+      path: '/frontend-developer-hittahem'
+      fullPath: '/work/frontend-developer-hittahem'
+      preLoaderRoute: typeof WorkFrontendDeveloperHittahemRouteImport
+      parentRoute: typeof WorkRoute
     }
-    '/projects/terminal-portfolio': {
-      id: '/projects/terminal-portfolio'
-      path: '/terminal-portfolio'
-      fullPath: '/projects/terminal-portfolio'
-      preLoaderRoute: typeof ProjectsTerminalPortfolioRouteImport
-      parentRoute: typeof ProjectsRoute
+    '/work/cto-extellio': {
+      id: '/work/cto-extellio'
+      path: '/cto-extellio'
+      fullPath: '/work/cto-extellio'
+      preLoaderRoute: typeof WorkCtoExtellioRouteImport
+      parentRoute: typeof WorkRoute
     }
-    '/projects/analytics-workbench': {
-      id: '/projects/analytics-workbench'
-      path: '/analytics-workbench'
-      fullPath: '/projects/analytics-workbench'
-      preLoaderRoute: typeof ProjectsAnalyticsWorkbenchRouteImport
-      parentRoute: typeof ProjectsRoute
+    '/side-projects/vbc': {
+      id: '/side-projects/vbc'
+      path: '/vbc'
+      fullPath: '/side-projects/vbc'
+      preLoaderRoute: typeof SideProjectsVbcRouteImport
+      parentRoute: typeof SideProjectsRoute
     }
-    '/career/staff-product-engineer': {
-      id: '/career/staff-product-engineer'
-      path: '/staff-product-engineer'
-      fullPath: '/career/staff-product-engineer'
-      preLoaderRoute: typeof CareerStaffProductEngineerRouteImport
-      parentRoute: typeof CareerRoute
+    '/side-projects/ol-events': {
+      id: '/side-projects/ol-events'
+      path: '/ol-events'
+      fullPath: '/side-projects/ol-events'
+      preLoaderRoute: typeof SideProjectsOlEventsRouteImport
+      parentRoute: typeof SideProjectsRoute
     }
-    '/career/senior-fullstack-engineer': {
-      id: '/career/senior-fullstack-engineer'
-      path: '/senior-fullstack-engineer'
-      fullPath: '/career/senior-fullstack-engineer'
-      preLoaderRoute: typeof CareerSeniorFullstackEngineerRouteImport
-      parentRoute: typeof CareerRoute
+    '/side-projects/elpr-is': {
+      id: '/side-projects/elpr-is'
+      path: '/elpr-is'
+      fullPath: '/side-projects/elpr-is'
+      preLoaderRoute: typeof SideProjectsElprIsRouteImport
+      parentRoute: typeof SideProjectsRoute
     }
-    '/career/frontend-engineer': {
-      id: '/career/frontend-engineer'
-      path: '/frontend-engineer'
-      fullPath: '/career/frontend-engineer'
-      preLoaderRoute: typeof CareerFrontendEngineerRouteImport
-      parentRoute: typeof CareerRoute
+    '/side-projects/carl-grundbergs-com': {
+      id: '/side-projects/carl-grundbergs-com'
+      path: '/carl-grundbergs-com'
+      fullPath: '/side-projects/carl-grundbergs-com'
+      preLoaderRoute: typeof SideProjectsCarlGrundbergsComRouteImport
+      parentRoute: typeof SideProjectsRoute
     }
   }
 }
 
-interface CareerRouteChildren {
-  CareerFrontendEngineerRoute: typeof CareerFrontendEngineerRoute
-  CareerSeniorFullstackEngineerRoute: typeof CareerSeniorFullstackEngineerRoute
-  CareerStaffProductEngineerRoute: typeof CareerStaffProductEngineerRoute
+interface SideProjectsRouteChildren {
+  SideProjectsCarlGrundbergsComRoute: typeof SideProjectsCarlGrundbergsComRoute
+  SideProjectsElprIsRoute: typeof SideProjectsElprIsRoute
+  SideProjectsOlEventsRoute: typeof SideProjectsOlEventsRoute
+  SideProjectsVbcRoute: typeof SideProjectsVbcRoute
 }
 
-const CareerRouteChildren: CareerRouteChildren = {
-  CareerFrontendEngineerRoute: CareerFrontendEngineerRoute,
-  CareerSeniorFullstackEngineerRoute: CareerSeniorFullstackEngineerRoute,
-  CareerStaffProductEngineerRoute: CareerStaffProductEngineerRoute,
+const SideProjectsRouteChildren: SideProjectsRouteChildren = {
+  SideProjectsCarlGrundbergsComRoute: SideProjectsCarlGrundbergsComRoute,
+  SideProjectsElprIsRoute: SideProjectsElprIsRoute,
+  SideProjectsOlEventsRoute: SideProjectsOlEventsRoute,
+  SideProjectsVbcRoute: SideProjectsVbcRoute,
 }
 
-const CareerRouteWithChildren =
-  CareerRoute._addFileChildren(CareerRouteChildren)
-
-interface ProjectsRouteChildren {
-  ProjectsAnalyticsWorkbenchRoute: typeof ProjectsAnalyticsWorkbenchRoute
-  ProjectsTerminalPortfolioRoute: typeof ProjectsTerminalPortfolioRoute
-  ProjectsWorkflowAutomationRoute: typeof ProjectsWorkflowAutomationRoute
-}
-
-const ProjectsRouteChildren: ProjectsRouteChildren = {
-  ProjectsAnalyticsWorkbenchRoute: ProjectsAnalyticsWorkbenchRoute,
-  ProjectsTerminalPortfolioRoute: ProjectsTerminalPortfolioRoute,
-  ProjectsWorkflowAutomationRoute: ProjectsWorkflowAutomationRoute,
-}
-
-const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
-  ProjectsRouteChildren,
+const SideProjectsRouteWithChildren = SideProjectsRoute._addFileChildren(
+  SideProjectsRouteChildren,
 )
+
+interface WorkRouteChildren {
+  WorkCtoExtellioRoute: typeof WorkCtoExtellioRoute
+  WorkFrontendDeveloperHittahemRoute: typeof WorkFrontendDeveloperHittahemRoute
+}
+
+const WorkRouteChildren: WorkRouteChildren = {
+  WorkCtoExtellioRoute: WorkCtoExtellioRoute,
+  WorkFrontendDeveloperHittahemRoute: WorkFrontendDeveloperHittahemRoute,
+}
+
+const WorkRouteWithChildren = WorkRoute._addFileChildren(WorkRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  CareerRoute: CareerRouteWithChildren,
+  AboutMeRoute: AboutMeRoute,
   ContactRoute: ContactRoute,
-  ProjectsRoute: ProjectsRouteWithChildren,
+  HobbiesRoute: HobbiesRoute,
+  SideProjectsRoute: SideProjectsRouteWithChildren,
+  WorkRoute: WorkRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

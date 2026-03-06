@@ -1,8 +1,8 @@
-import { aboutDirectory } from "../routes/about";
-import { careerDirectory } from "../routes/career";
-import { contactDirectory } from "../routes/contact";
-import { homeIndexFile } from "../routes/index";
-import { projectsDirectory } from "../routes/projects";
+import { aboutMeFile } from "../routes/about-me";
+import { contactFile } from "../routes/contact";
+import { hobbiesDirectory } from "../routes/hobbies";
+import { sideProjectsDirectory } from "../routes/side-projects";
+import { workDirectory } from "../routes/work";
 import {
 	createDirectory,
 	type TerminalDirectory,
@@ -24,12 +24,11 @@ export const rootDirectory = createDirectory({
 	route: "/",
 	description: "Root directory for the terminal portfolio.",
 	directories: [
-		aboutDirectory,
-		careerDirectory,
-		projectsDirectory,
-		contactDirectory,
+		workDirectory,
+		sideProjectsDirectory,
+		hobbiesDirectory,
 	],
-	files: [homeIndexFile],
+	files: [aboutMeFile, contactFile],
 });
 
 export function formatPromptPath(pathSegments: string[]): string {
@@ -44,11 +43,18 @@ export function normalizeInputPath(
 		return currentDirectorySegments;
 	}
 
-	const isAbsolute = rawInput.startsWith("/");
+	const normalizedInput = rawInput.trim();
+	const isHomePath = normalizedInput === "~" || normalizedInput.startsWith("~/");
+	const isAbsolute = normalizedInput.startsWith("/") || isHomePath;
 	const sourceSegments = isAbsolute ? [] : [...currentDirectorySegments];
 
-	for (const part of rawInput.split("/")) {
+	for (const part of normalizedInput.split("/")) {
 		if (!part || part === ".") {
+			continue;
+		}
+
+		if (part === "~") {
+			sourceSegments.length = 0;
 			continue;
 		}
 
@@ -136,6 +142,19 @@ export function getViewForPathname(pathname: string): TerminalView {
 	}
 
 	const topLevelDirectory = getDirectoryBySegments([segments[0]]);
+	if (!topLevelDirectory) {
+		const rootFileName = `${segments[0]}.md`;
+		const selectedFile = rootDirectory.files.find(
+			(file) => file.route === trimmed || file.name === rootFileName,
+		);
+		if (selectedFile) {
+			return {
+				directory: rootDirectory,
+				selectedFile,
+			};
+		}
+	}
+
 	if (!topLevelDirectory) {
 		return { directory: rootDirectory };
 	}

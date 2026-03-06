@@ -11,12 +11,12 @@ import {
 	getListingForDirectory,
 	getViewForPathname,
 	normalizeInputPath,
-	rootDirectory,
 	type TerminalDirectory,
 	type TerminalFile,
 	type TerminalListingItem,
 	type TerminalView,
 } from "../lib/terminalFs";
+import { HOME_LOGIN_MESSAGE_LINES } from "../routes/index";
 import ThemeToggle from "./ThemeToggle";
 
 type TerminalEntry =
@@ -61,7 +61,9 @@ const HELP_LINES = [
 	"pwd                  print the current directory",
 	"cd <path>            move into a section",
 	"cat <file>           read a file",
+	"uptime               show Carl uptime",
 	"clear                clear the terminal output",
+	"exit                 close the terminal",
 ];
 
 export default function TerminalShell() {
@@ -89,12 +91,8 @@ export default function TerminalShell() {
 	);
 
 	const currentDirectorySegments = useMemo(() => {
-		return location.pathname
-			.replace(/\/+$/, "")
-			.split("/")
-			.filter(Boolean)
-			.slice(0, 1);
-	}, [location.pathname]);
+		return currentView.directory.name ? [currentView.directory.name] : [];
+	}, [currentView]);
 
 	const promptPath = formatPromptPath(currentDirectorySegments);
 	const viewKey =
@@ -254,6 +252,27 @@ export default function TerminalShell() {
 			}
 			case "clear": {
 				setEntries([]);
+				return;
+			}
+			case "exit": {
+				appendCommand(trimmed);
+				handleClose();
+				return;
+			}
+			case "uptime": {
+				appendEntries([
+					{
+						id: nextEntryId(),
+						type: "command",
+						cwd: promptPath,
+						value: trimmed,
+					},
+					{
+						id: nextEntryId(),
+						type: "lines",
+						lines: [getUptimeLine()],
+					},
+				]);
 				return;
 			}
 			case "ls": {
@@ -508,7 +527,7 @@ export default function TerminalShell() {
 
 						if (entry.type === "listing") {
 							return (
-								<section key={entry.id} className="terminal-block">
+								<section key={entry.id} className="terminal-listing-block">
 									<div className="terminal-section-label">
 										contents of {entry.pathLabel}
 									</div>
@@ -635,11 +654,12 @@ function createViewEntries(
 	nextId: () => number,
 ): TerminalEntry[] {
 	if (view.selectedFile) {
+		const directorySegments = view.directory.name ? [view.directory.name] : [];
 		return [
 			{
 				id: nextId(),
 				type: "file",
-				pathLabel: formatPromptPath([view.directory.name]),
+				pathLabel: formatPromptPath(directorySegments),
 				file: view.selectedFile,
 			},
 		];
@@ -674,7 +694,7 @@ function getQuickCommands(
 	directory: TerminalDirectory,
 	selectedFile: TerminalFile | undefined,
 ) {
-	const commands = ["help", "ls"];
+	const commands = ["help", "ls", "uptime"];
 
 	if (currentDirectorySegments.length > 0) {
 		commands.push("pwd", "cd ..");
@@ -707,23 +727,49 @@ function getCurrentHost() {
 }
 
 function createWelcomeLines() {
-	const homeIndexFile = rootDirectory.files.find((file) => file.name === "index.md");
-	if (!homeIndexFile) {
-		return ["Welcome.", "Type help to list commands."];
-	}
-
-	const contentLines = homeIndexFile.body
-		.split("\n")
-		.map((line) => line.replace(/^#+\s*/, "").trim())
-		.filter(Boolean);
+	const contentLines = HOME_LOGIN_MESSAGE_LINES.filter(Boolean);
 
 	return [
 		"Last login: today on tty1",
+		getUptimeLine(),
 		"",
 		...contentLines,
 		"",
 		"Type help to list commands.",
 	];
+}
+
+function getUptimeLine() {
+	return `Uptime: ${formatAgeUptime(new Date("1982-07-31"))}`;
+}
+
+function formatAgeUptime(birthDate: Date, now = new Date()) {
+	let years = now.getFullYear() - birthDate.getFullYear();
+	let months = now.getMonth() - birthDate.getMonth();
+	let days = now.getDate() - birthDate.getDate();
+
+	if (days < 0) {
+		const previousMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+		days += previousMonth.getDate();
+		months -= 1;
+	}
+
+	if (months < 0) {
+		months += 12;
+		years -= 1;
+	}
+
+	const parts = [`${years} year${years === 1 ? "" : "s"}`];
+
+	if (months > 0) {
+		parts.push(`${months} month${months === 1 ? "" : "s"}`);
+	}
+
+	if (days > 0 && months === 0) {
+		parts.push(`${days} day${days === 1 ? "" : "s"}`);
+	}
+
+	return parts.join(", ");
 }
 
 function getViewFromMatches(

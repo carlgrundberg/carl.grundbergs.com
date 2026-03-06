@@ -419,6 +419,10 @@ pre code {
   background: var(--window-bg-strong);
 }
 
+.terminal-listing-block {
+  margin-bottom: 18px;
+}
+
 .terminal-section-label {
   color: var(--text-dim);
   font-size: 0.74rem;
@@ -642,13 +646,14 @@ pre code {
   .terminal-transcript {
     min-height: 0;
     max-height: none;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    padding-bottom: 16px;
   }
 
   .terminal-input-row {
     flex-wrap: wrap;
     margin-top: auto;
     flex-shrink: 0;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    padding-top: 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 }

@@ -1,43 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	createDirectory,
 	createFile,
 	markdown,
 	type TerminalRouteMatchData,
 } from "../lib/terminalContent";
 
-export const contactIndexFile = createFile({
-	name: "index.md",
-	summary: "Preferred contact channels and collaboration notes.",
+export const contactFile = createFile({
+	name: "contact.md",
+	summary: "Ways to reach out and open an issue on this website repository.",
+	route: "/contact",
 	body: markdown([
 		"# Contact",
 		"",
-		"Best for project discussions or opportunities:",
+		"The easiest way to leave feedback about this website is through the repository issues page:",
 		"",
-		"- email: [hello@carlgrundbergs.com](mailto:hello@carlgrundbergs.com)",
-		"- github: [github.com/your-handle](https://github.com/your-handle)",
-		"- linkedin: [linkedin.com/in/your-profile](https://linkedin.com/in/your-profile)",
-		"",
-		"I am most interested in product engineering, frontend-heavy roles, and teams that care about usability as much as code quality.",
-		"",
-		"> Replace the placeholder profile URLs with real ones before launch.",
+		"- [github.com/carlgrundberg/carl.grundbergs.com/issues](https://github.com/carlgrundberg/carl.grundbergs.com/issues)",
 	]),
-});
-
-export const contactDirectory = createDirectory({
-	name: "contact",
-	title: "Contact",
-	route: "/contact",
-	description: "Ways to reach out, collaborate, or continue the conversation.",
-	directories: [],
-	files: [contactIndexFile],
 });
 
 export const Route = createFileRoute("/contact")({
 	loader: () =>
 		({
 			routeKey: "/contact",
-			directory: contactDirectory,
+			selectedFile: contactFile,
 		}) satisfies TerminalRouteMatchData,
 	component: RouteComponent,
 });
