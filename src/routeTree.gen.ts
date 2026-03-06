@@ -14,8 +14,12 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CareerRouteImport } from './routes/career'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProjectsProjectRouteImport } from './routes/projects.$project'
-import { Route as CareerEntryRouteImport } from './routes/career.$entry'
+import { Route as ProjectsWorkflowAutomationRouteImport } from './routes/projects.workflow-automation'
+import { Route as ProjectsTerminalPortfolioRouteImport } from './routes/projects.terminal-portfolio'
+import { Route as ProjectsAnalyticsWorkbenchRouteImport } from './routes/projects.analytics-workbench'
+import { Route as CareerStaffProductEngineerRouteImport } from './routes/career.staff-product-engineer'
+import { Route as CareerSeniorFullstackEngineerRouteImport } from './routes/career.senior-fullstack-engineer'
+import { Route as CareerFrontendEngineerRouteImport } from './routes/career.frontend-engineer'
 
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
@@ -42,14 +46,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectRoute = ProjectsProjectRouteImport.update({
-  id: '/$project',
-  path: '/$project',
-  getParentRoute: () => ProjectsRoute,
-} as any)
-const CareerEntryRoute = CareerEntryRouteImport.update({
-  id: '/$entry',
-  path: '/$entry',
+const ProjectsWorkflowAutomationRoute =
+  ProjectsWorkflowAutomationRouteImport.update({
+    id: '/workflow-automation',
+    path: '/workflow-automation',
+    getParentRoute: () => ProjectsRoute,
+  } as any)
+const ProjectsTerminalPortfolioRoute =
+  ProjectsTerminalPortfolioRouteImport.update({
+    id: '/terminal-portfolio',
+    path: '/terminal-portfolio',
+    getParentRoute: () => ProjectsRoute,
+  } as any)
+const ProjectsAnalyticsWorkbenchRoute =
+  ProjectsAnalyticsWorkbenchRouteImport.update({
+    id: '/analytics-workbench',
+    path: '/analytics-workbench',
+    getParentRoute: () => ProjectsRoute,
+  } as any)
+const CareerStaffProductEngineerRoute =
+  CareerStaffProductEngineerRouteImport.update({
+    id: '/staff-product-engineer',
+    path: '/staff-product-engineer',
+    getParentRoute: () => CareerRoute,
+  } as any)
+const CareerSeniorFullstackEngineerRoute =
+  CareerSeniorFullstackEngineerRouteImport.update({
+    id: '/senior-fullstack-engineer',
+    path: '/senior-fullstack-engineer',
+    getParentRoute: () => CareerRoute,
+  } as any)
+const CareerFrontendEngineerRoute = CareerFrontendEngineerRouteImport.update({
+  id: '/frontend-engineer',
+  path: '/frontend-engineer',
   getParentRoute: () => CareerRoute,
 } as any)
 
@@ -59,8 +88,12 @@ export interface FileRoutesByFullPath {
   '/career': typeof CareerRouteWithChildren
   '/contact': typeof ContactRoute
   '/projects': typeof ProjectsRouteWithChildren
-  '/career/$entry': typeof CareerEntryRoute
-  '/projects/$project': typeof ProjectsProjectRoute
+  '/career/frontend-engineer': typeof CareerFrontendEngineerRoute
+  '/career/senior-fullstack-engineer': typeof CareerSeniorFullstackEngineerRoute
+  '/career/staff-product-engineer': typeof CareerStaffProductEngineerRoute
+  '/projects/analytics-workbench': typeof ProjectsAnalyticsWorkbenchRoute
+  '/projects/terminal-portfolio': typeof ProjectsTerminalPortfolioRoute
+  '/projects/workflow-automation': typeof ProjectsWorkflowAutomationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,8 +101,12 @@ export interface FileRoutesByTo {
   '/career': typeof CareerRouteWithChildren
   '/contact': typeof ContactRoute
   '/projects': typeof ProjectsRouteWithChildren
-  '/career/$entry': typeof CareerEntryRoute
-  '/projects/$project': typeof ProjectsProjectRoute
+  '/career/frontend-engineer': typeof CareerFrontendEngineerRoute
+  '/career/senior-fullstack-engineer': typeof CareerSeniorFullstackEngineerRoute
+  '/career/staff-product-engineer': typeof CareerStaffProductEngineerRoute
+  '/projects/analytics-workbench': typeof ProjectsAnalyticsWorkbenchRoute
+  '/projects/terminal-portfolio': typeof ProjectsTerminalPortfolioRoute
+  '/projects/workflow-automation': typeof ProjectsWorkflowAutomationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -78,8 +115,12 @@ export interface FileRoutesById {
   '/career': typeof CareerRouteWithChildren
   '/contact': typeof ContactRoute
   '/projects': typeof ProjectsRouteWithChildren
-  '/career/$entry': typeof CareerEntryRoute
-  '/projects/$project': typeof ProjectsProjectRoute
+  '/career/frontend-engineer': typeof CareerFrontendEngineerRoute
+  '/career/senior-fullstack-engineer': typeof CareerSeniorFullstackEngineerRoute
+  '/career/staff-product-engineer': typeof CareerStaffProductEngineerRoute
+  '/projects/analytics-workbench': typeof ProjectsAnalyticsWorkbenchRoute
+  '/projects/terminal-portfolio': typeof ProjectsTerminalPortfolioRoute
+  '/projects/workflow-automation': typeof ProjectsWorkflowAutomationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -89,8 +130,12 @@ export interface FileRouteTypes {
     | '/career'
     | '/contact'
     | '/projects'
-    | '/career/$entry'
-    | '/projects/$project'
+    | '/career/frontend-engineer'
+    | '/career/senior-fullstack-engineer'
+    | '/career/staff-product-engineer'
+    | '/projects/analytics-workbench'
+    | '/projects/terminal-portfolio'
+    | '/projects/workflow-automation'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,8 +143,12 @@ export interface FileRouteTypes {
     | '/career'
     | '/contact'
     | '/projects'
-    | '/career/$entry'
-    | '/projects/$project'
+    | '/career/frontend-engineer'
+    | '/career/senior-fullstack-engineer'
+    | '/career/staff-product-engineer'
+    | '/projects/analytics-workbench'
+    | '/projects/terminal-portfolio'
+    | '/projects/workflow-automation'
   id:
     | '__root__'
     | '/'
@@ -107,8 +156,12 @@ export interface FileRouteTypes {
     | '/career'
     | '/contact'
     | '/projects'
-    | '/career/$entry'
-    | '/projects/$project'
+    | '/career/frontend-engineer'
+    | '/career/senior-fullstack-engineer'
+    | '/career/staff-product-engineer'
+    | '/projects/analytics-workbench'
+    | '/projects/terminal-portfolio'
+    | '/projects/workflow-automation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,40 +209,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$project': {
-      id: '/projects/$project'
-      path: '/$project'
-      fullPath: '/projects/$project'
-      preLoaderRoute: typeof ProjectsProjectRouteImport
+    '/projects/workflow-automation': {
+      id: '/projects/workflow-automation'
+      path: '/workflow-automation'
+      fullPath: '/projects/workflow-automation'
+      preLoaderRoute: typeof ProjectsWorkflowAutomationRouteImport
       parentRoute: typeof ProjectsRoute
     }
-    '/career/$entry': {
-      id: '/career/$entry'
-      path: '/$entry'
-      fullPath: '/career/$entry'
-      preLoaderRoute: typeof CareerEntryRouteImport
+    '/projects/terminal-portfolio': {
+      id: '/projects/terminal-portfolio'
+      path: '/terminal-portfolio'
+      fullPath: '/projects/terminal-portfolio'
+      preLoaderRoute: typeof ProjectsTerminalPortfolioRouteImport
+      parentRoute: typeof ProjectsRoute
+    }
+    '/projects/analytics-workbench': {
+      id: '/projects/analytics-workbench'
+      path: '/analytics-workbench'
+      fullPath: '/projects/analytics-workbench'
+      preLoaderRoute: typeof ProjectsAnalyticsWorkbenchRouteImport
+      parentRoute: typeof ProjectsRoute
+    }
+    '/career/staff-product-engineer': {
+      id: '/career/staff-product-engineer'
+      path: '/staff-product-engineer'
+      fullPath: '/career/staff-product-engineer'
+      preLoaderRoute: typeof CareerStaffProductEngineerRouteImport
+      parentRoute: typeof CareerRoute
+    }
+    '/career/senior-fullstack-engineer': {
+      id: '/career/senior-fullstack-engineer'
+      path: '/senior-fullstack-engineer'
+      fullPath: '/career/senior-fullstack-engineer'
+      preLoaderRoute: typeof CareerSeniorFullstackEngineerRouteImport
+      parentRoute: typeof CareerRoute
+    }
+    '/career/frontend-engineer': {
+      id: '/career/frontend-engineer'
+      path: '/frontend-engineer'
+      fullPath: '/career/frontend-engineer'
+      preLoaderRoute: typeof CareerFrontendEngineerRouteImport
       parentRoute: typeof CareerRoute
     }
   }
 }
 
 interface CareerRouteChildren {
-  CareerEntryRoute: typeof CareerEntryRoute
+  CareerFrontendEngineerRoute: typeof CareerFrontendEngineerRoute
+  CareerSeniorFullstackEngineerRoute: typeof CareerSeniorFullstackEngineerRoute
+  CareerStaffProductEngineerRoute: typeof CareerStaffProductEngineerRoute
 }
 
 const CareerRouteChildren: CareerRouteChildren = {
-  CareerEntryRoute: CareerEntryRoute,
+  CareerFrontendEngineerRoute: CareerFrontendEngineerRoute,
+  CareerSeniorFullstackEngineerRoute: CareerSeniorFullstackEngineerRoute,
+  CareerStaffProductEngineerRoute: CareerStaffProductEngineerRoute,
 }
 
 const CareerRouteWithChildren =
   CareerRoute._addFileChildren(CareerRouteChildren)
 
 interface ProjectsRouteChildren {
-  ProjectsProjectRoute: typeof ProjectsProjectRoute
+  ProjectsAnalyticsWorkbenchRoute: typeof ProjectsAnalyticsWorkbenchRoute
+  ProjectsTerminalPortfolioRoute: typeof ProjectsTerminalPortfolioRoute
+  ProjectsWorkflowAutomationRoute: typeof ProjectsWorkflowAutomationRoute
 }
 
 const ProjectsRouteChildren: ProjectsRouteChildren = {
-  ProjectsProjectRoute: ProjectsProjectRoute,
+  ProjectsAnalyticsWorkbenchRoute: ProjectsAnalyticsWorkbenchRoute,
+  ProjectsTerminalPortfolioRoute: ProjectsTerminalPortfolioRoute,
+  ProjectsWorkflowAutomationRoute: ProjectsWorkflowAutomationRoute,
 }
 
 const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(

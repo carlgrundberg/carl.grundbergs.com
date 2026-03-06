@@ -1,7 +1,8 @@
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation, useMatches, useNavigate } from "@tanstack/react-router";
 import { Maximize2, Minimize2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import type { TerminalRouteMatchData } from "../lib/terminalContent";
 import {
 	formatPromptPath,
 	getDirectoryBySegments,
@@ -13,6 +14,7 @@ import {
 	type TerminalDirectory,
 	type TerminalFile,
 	type TerminalListingItem,
+	type TerminalView,
 } from "../lib/terminalFs";
 import ThemeToggle from "./ThemeToggle";
 
@@ -63,6 +65,7 @@ const HELP_LINES = [
 
 export default function TerminalShell() {
 	const location = useLocation();
+	const matches = useMatches();
 	const navigate = useNavigate();
 	const inputRef = useRef<HTMLInputElement>(null);
 	const transcriptRef = useRef<HTMLDivElement>(null);
@@ -70,6 +73,7 @@ export default function TerminalShell() {
 	const entryIdRef = useRef(0);
 	const lastViewKeyRef = useRef<string | null>(null);
 	const pendingNavigationRef = useRef<PendingNavigation | null>(null);
+	const pendingRootLaunchRef = useRef(false);
 
 	const [entries, setEntries] = useState<TerminalEntry[]>([]);
 	const [inputValue, setInputValue] = useState("");
@@ -81,8 +85,8 @@ export default function TerminalShell() {
 	const [isClosed, setIsClosed] = useState(false);
 
 	const currentView = useMemo(
-		() => getViewForPathname(location.pathname),
-		[location.pathname],
+		() => getViewFromMatches(matches) ?? getViewForPathname(location.pathname),
+		[location.pathname, matches],
 	);
 
 	const currentDirectorySegments = useMemo(() => {
@@ -141,10 +145,19 @@ export default function TerminalShell() {
 	}, [entryCount, isClosed, isMinimized]);
 
 	useEffect(() => {
+		if (pendingRootLaunchRef.current && viewKey !== "/") {
+			return;
+		}
+
 		if (!initializedRef.current) {
 			initializedRef.current = true;
-			lastViewKeyRef.current = viewKey;
-			setEntries(createInitialEntries(currentView, nextEntryId));
+			const initialView = pendingRootLaunchRef.current
+				? getViewForPathname("/")
+				: currentView;
+			lastViewKeyRef.current =
+				initialView.selectedFile?.route ?? initialView.directory.route;
+			pendingRootLaunchRef.current = false;
+			setEntries(createInitialEntries(initialView, nextEntryId));
 			return;
 		}
 
@@ -432,200 +445,255 @@ export default function TerminalShell() {
 	}
 
 	function handleClose() {
+		entryIdRef.current = 0;
+		lastViewKeyRef.current = null;
+		pendingNavigationRef.current = null;
+		pendingRootLaunchRef.current = false;
+		initializedRef.current = false;
+
+		setEntries([]);
+		setInputValue("");
+		setCommandHistory([]);
+		setHistoryIndex(null);
 		setIsClosed(true);
 		setIsMinimized(false);
 		setIsMaximized(false);
 	}
 
+	function handleOpenFromShortcut() {
+		pendingRootLaunchRef.current = true;
+		setIsClosed(false);
+		setIsMinimized(false);
+		setIsMaximized(false);
+		void navigate({ to: "/" });
+	}
+
+	function handleRestore() {
+		if (isClosed) {
+			return;
+		}
+
+		setIsMinimized(false);
+	}
+
 	if (isClosed) {
-		return <main className="terminal-page terminal-page-closed" />;
+		return (
+			<main className="terminal-page terminal-page-closed">
+				<button
+					type="button"
+					className="terminal-shortcut"
+					onClick={handleOpenFromShortcut}
+					aria-label="Open terminal"
+					title="Open terminal"
+				>
+					<span className="terminal-shortcut-icon" aria-hidden="true">
+						&gt;_
+					</span>
+					<span className="terminal-shortcut-label">Terminal</span>
+				</button>
+			</main>
+		);
 	}
 
 	return (
 		<main className="terminal-page">
-			<section
-				className={`terminal-window${isMaximized ? " is-maximized" : ""}`}
-			>
-				<header className="terminal-titlebar">
-					<div className="terminal-app-frame">
+			{isMinimized ? (
+				<div className="terminal-minimized-dock">
+					<button
+						type="button"
+						className="terminal-minimized-tab"
+						onClick={handleRestore}
+						aria-label="Restore terminal window"
+						title="Restore terminal window"
+					>
 						<span className="terminal-app-icon" aria-hidden="true">
 							&gt;_
 						</span>
-						<div className="terminal-title-group">
-							<p className="terminal-title">Carl Grundberg</p>
-						</div>
-					</div>
-					<ThemeToggle />
-					<div className="terminal-window-controls">
-						<button
-							type="button"
-							className="terminal-window-control"
-							onClick={handleMinimize}
-							aria-label={
-								isMinimized
-									? "Restore terminal window"
-									: "Minimize terminal window"
-							}
-							title={isMinimized ? "Restore" : "Minimize"}
-						>
-							<Minimize2 size={14} />
-						</button>
-						<button
-							type="button"
-							className="terminal-window-control"
-							onClick={handleMaximize}
-							aria-label={
-								isMaximized
-									? "Restore terminal window size"
-									: "Maximize terminal window"
-							}
-							title={isMaximized ? "Restore size" : "Maximize"}
-						>
-							<Maximize2 size={14} />
-						</button>
-						<button
-							type="button"
-							className="terminal-window-control"
-							onClick={handleClose}
-							aria-label="Close terminal window"
-							title="Close"
-						>
-							<X size={14} />
-						</button>
-					</div>
-				</header>
-
-				{isMinimized ? null : (
-					<>
-						<div ref={transcriptRef} className="terminal-transcript">
-							{entries.map((entry) => {
-								if (entry.type === "command") {
-									return (
-										<div key={entry.id} className="terminal-command">
-											<span
-												className="terminal-prompt"
-												suppressHydrationWarning
-											>
-												{terminalIdentity}
-											</span>
-											<span className="terminal-prompt-path">{entry.cwd}</span>
-											<span className="terminal-prompt-symbol">$</span>
-											<span>{entry.value}</span>
-										</div>
-									);
-								}
-
-								if (entry.type === "listing") {
-									return (
-										<section key={entry.id} className="terminal-block">
-											<div className="terminal-section-label">
-												contents of {entry.pathLabel}
-											</div>
-											<div className="terminal-listing-grid">
-												{entry.items.map((item) => (
-													<button
-														key={`${entry.id}-${item.name}`}
-														type="button"
-														className={`terminal-listing-item is-${item.type}`}
-														onClick={() =>
-															executeCommand(
-																item.type === "directory"
-																	? `cd ${getClickCommandPath(
-																			currentDirectorySegments,
-																			entry.directorySegments,
-																			item.name.replace(/\/$/, ""),
-																		)}`
-																	: `cat ${getClickCommandPath(
-																			currentDirectorySegments,
-																			entry.directorySegments,
-																			item.name,
-																		)}`,
-															)
-														}
-													>
-														<span className="terminal-listing-name">
-															{item.name}
-														</span>
-														<span className="terminal-listing-summary">
-															{item.summary}
-														</span>
-													</button>
-												))}
-											</div>
-										</section>
-									);
-								}
-
-								if (entry.type === "file") {
-									return (
-										<section
-											key={entry.id}
-											className="terminal-block terminal-file-block"
-										>
-											<div className="terminal-section-label">
-												{entry.pathLabel}/{entry.file.name}
-											</div>
-											<div className="terminal-file-meta">
-												<span>{entry.file.title}</span>
-												<span>updated {entry.file.updated}</span>
-											</div>
-											<div className="terminal-markdown">
-												<ReactMarkdown>{entry.file.body}</ReactMarkdown>
-											</div>
-										</section>
-									);
-								}
-
-								return (
-									<pre
-										key={entry.id}
-										className={`terminal-pre${entry.tone ? ` is-${entry.tone}` : ""}`}
-									>
-										{entry.lines.join("\n")}
-									</pre>
-								);
-							})}
-						</div>
-
-						<div className="terminal-quick-actions">
-							{quickCommands.map((command) => (
-								<button
-									key={command}
-									type="button"
-									className="terminal-chip"
-									onClick={() => executeCommand(command)}
-								>
-									{command}
-								</button>
-							))}
-						</div>
-
-						<form className="terminal-input-row" onSubmit={handleSubmit}>
-							<label className="sr-only" htmlFor="terminal-command-input">
-								Terminal command input
-							</label>
-							<span className="terminal-prompt" suppressHydrationWarning>
-								{terminalIdentity}
+						<span className="terminal-minimized-label">Carl Grundberg</span>
+					</button>
+					<button
+						type="button"
+						className="terminal-window-control terminal-minimized-close"
+						onClick={handleClose}
+						aria-label="Close terminal window"
+						title="Close"
+					>
+						<X size={14} />
+					</button>
+				</div>
+			) : (
+				<section
+					className={`terminal-window${isMaximized ? " is-maximized" : ""}`}
+				>
+					<header className="terminal-titlebar">
+						<div className="terminal-app-frame">
+							<span className="terminal-app-icon" aria-hidden="true">
+								&gt;_
 							</span>
-							<span className="terminal-prompt-path">{promptPath}</span>
-							<span className="terminal-prompt-symbol">$</span>
-							<input
-								ref={inputRef}
-								id="terminal-command-input"
-								className="terminal-input"
-								autoCapitalize="off"
-								autoComplete="off"
-								autoCorrect="off"
-								spellCheck={false}
-								value={inputValue}
-								onChange={(event) => setInputValue(event.target.value)}
-								onKeyDown={handleKeyDown}
-								placeholder="enter a command"
-							/>
-						</form>
-					</>
-				)}
-			</section>
+							<div className="terminal-title-group">
+								<p className="terminal-title">Carl Grundberg</p>
+							</div>
+						</div>
+						<ThemeToggle />
+						<div className="terminal-window-controls">
+							<button
+								type="button"
+								className="terminal-window-control"
+								onClick={handleMinimize}
+								aria-label="Minimize terminal window"
+								title="Minimize"
+							>
+								<Minimize2 size={14} />
+							</button>
+							<button
+								type="button"
+								className="terminal-window-control"
+								onClick={handleMaximize}
+								aria-label={
+									isMaximized
+										? "Restore terminal window size"
+										: "Maximize terminal window"
+								}
+								title={isMaximized ? "Restore size" : "Maximize"}
+							>
+								<Maximize2 size={14} />
+							</button>
+							<button
+								type="button"
+								className="terminal-window-control"
+								onClick={handleClose}
+								aria-label="Close terminal window"
+								title="Close"
+							>
+								<X size={14} />
+							</button>
+						</div>
+					</header>
+
+					<div ref={transcriptRef} className="terminal-transcript">
+						{entries.map((entry) => {
+							if (entry.type === "command") {
+								return (
+									<div key={entry.id} className="terminal-command">
+										<span className="terminal-prompt" suppressHydrationWarning>
+											{terminalIdentity}
+										</span>
+										<span className="terminal-prompt-path">{entry.cwd}</span>
+										<span className="terminal-prompt-symbol">$</span>
+										<span>{entry.value}</span>
+									</div>
+								);
+							}
+
+							if (entry.type === "listing") {
+								return (
+									<section key={entry.id} className="terminal-block">
+										<div className="terminal-section-label">
+											contents of {entry.pathLabel}
+										</div>
+										<div className="terminal-listing-grid">
+											{entry.items.map((item) => (
+												<button
+													key={`${entry.id}-${item.name}`}
+													type="button"
+													className={`terminal-listing-item is-${item.type}`}
+													onClick={() =>
+														executeCommand(
+															item.type === "directory"
+																? `cd ${getClickCommandPath(
+																		currentDirectorySegments,
+																		entry.directorySegments,
+																		item.name.replace(/\/$/, ""),
+																	)}`
+																: `cat ${getClickCommandPath(
+																		currentDirectorySegments,
+																		entry.directorySegments,
+																		item.name,
+																	)}`,
+														)
+													}
+												>
+													<span className="terminal-listing-name">
+														{item.name}
+													</span>
+													<span className="terminal-listing-summary">
+														{item.summary}
+													</span>
+												</button>
+											))}
+										</div>
+									</section>
+								);
+							}
+
+							if (entry.type === "file") {
+								return (
+									<section
+										key={entry.id}
+										className="terminal-block terminal-file-block"
+									>
+										<div className="terminal-section-label">
+											{entry.pathLabel}/{entry.file.name}
+										</div>
+										<div className="terminal-file-meta">
+											<span>updated {entry.file.updated}</span>
+										</div>
+										<div className="terminal-markdown">
+											<ReactMarkdown>{entry.file.body}</ReactMarkdown>
+										</div>
+									</section>
+								);
+							}
+
+							return (
+								<pre
+									key={entry.id}
+									className={`terminal-pre${entry.tone ? ` is-${entry.tone}` : ""}`}
+								>
+									{entry.lines.join("\n")}
+								</pre>
+							);
+						})}
+					</div>
+
+					<div className="terminal-quick-actions">
+						{quickCommands.map((command) => (
+							<button
+								key={command}
+								type="button"
+								className="terminal-chip"
+								onClick={() => executeCommand(command)}
+							>
+								{command}
+							</button>
+						))}
+					</div>
+
+					<form className="terminal-input-row" onSubmit={handleSubmit}>
+						<label className="sr-only" htmlFor="terminal-command-input">
+							Terminal command input
+						</label>
+						<span className="terminal-prompt" suppressHydrationWarning>
+							{terminalIdentity}
+						</span>
+						<span className="terminal-prompt-path">{promptPath}</span>
+						<span className="terminal-prompt-symbol">$</span>
+						<input
+							ref={inputRef}
+							id="terminal-command-input"
+							className="terminal-input"
+							autoCapitalize="off"
+							autoComplete="off"
+							autoCorrect="off"
+							spellCheck={false}
+							value={inputValue}
+							onChange={(event) => setInputValue(event.target.value)}
+							onKeyDown={handleKeyDown}
+							placeholder="enter a command"
+						/>
+					</form>
+				</section>
+			)}
 		</main>
 	);
 }
@@ -682,16 +750,7 @@ function createViewEntries(
 			]
 		: [];
 
-	return [
-		...autoOpenEntries,
-		{
-			id: nextId(),
-			type: "listing",
-			pathLabel: directoryPromptPath,
-			directorySegments,
-			items: getListingForDirectory(view.directory),
-		},
-	];
+	return autoOpenEntries;
 }
 
 function getClickCommandPath(
@@ -750,4 +809,44 @@ function getCurrentHost() {
 	}
 
 	return window.location.hostname || "domain";
+}
+
+function getViewFromMatches(
+	matches: ReadonlyArray<{ loaderData?: unknown }>,
+): TerminalView | undefined {
+	let directory: TerminalDirectory | undefined;
+	let selectedFile: TerminalFile | undefined;
+
+	for (const match of matches) {
+		if (!isTerminalRouteMatchData(match.loaderData)) {
+			continue;
+		}
+
+		if (match.loaderData.directory) {
+			directory = match.loaderData.directory;
+		}
+
+		if (match.loaderData.selectedFile) {
+			selectedFile = match.loaderData.selectedFile;
+		}
+	}
+
+	if (!directory) {
+		return undefined;
+	}
+
+	return {
+		directory,
+		selectedFile,
+	};
+}
+
+function isTerminalRouteMatchData(
+	value: unknown,
+): value is TerminalRouteMatchData {
+	if (!value || typeof value !== "object") {
+		return false;
+	}
+
+	return "routeKey" in value && typeof value.routeKey === "string";
 }
