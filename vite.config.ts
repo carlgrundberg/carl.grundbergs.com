@@ -8,14 +8,20 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import netlify from '@netlify/vite-plugin-tanstack-start'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 const config = defineConfig({
   plugins: [
     devtools(),
-    netlify(),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),
+    cloudflare({
+      viteEnvironment: {
+        name: "ssr"
+      }
+    }),
   ],
 })
 
