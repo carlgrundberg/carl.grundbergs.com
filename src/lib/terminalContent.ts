@@ -2,7 +2,6 @@ export type TerminalFile = {
 	name: string;
 	summary: string;
 	body: string;
-	updated: string;
 	route?: string;
 };
 

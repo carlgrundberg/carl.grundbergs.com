@@ -9,7 +9,6 @@ export const staffProductEngineerFile = createFile({
 	name: "staff-product-engineer.md",
 	summary:
 		"Led product direction and frontend architecture for a B2B platform.",
-	updated: "2025-11-12",
 	route: "/career/staff-product-engineer",
 	body: markdown([
 		"# Staff Product Engineer",

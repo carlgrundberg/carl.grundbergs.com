@@ -12,7 +12,6 @@ import { workflowAutomationFile } from "./projects.workflow-automation";
 export const projectsIndexFile = createFile({
 	name: "index.md",
 	summary: "High-level list of selected projects and what they solved.",
-	updated: "2026-03-05",
 	body: markdown([
 		"# Selected projects",
 		"",

@@ -9,7 +9,6 @@ export const analyticsWorkbenchFile = createFile({
 	name: "analytics-workbench.md",
 	summary:
 		"Unified several disconnected reporting tools into one product surface.",
-	updated: "2025-06-18",
 	route: "/projects/analytics-workbench",
 	body: markdown([
 		"# Analytics Workbench",

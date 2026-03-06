@@ -9,7 +9,6 @@ import {
 export const contactIndexFile = createFile({
 	name: "index.md",
 	summary: "Preferred contact channels and collaboration notes.",
-	updated: "2026-03-05",
 	body: markdown([
 		"# Contact",
 		"",

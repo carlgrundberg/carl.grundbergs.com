@@ -1,5 +1,5 @@
 import { useLocation, useMatches, useNavigate } from "@tanstack/react-router";
-import { Maximize2, Minimize2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { TerminalRouteMatchData } from "../lib/terminalContent";
@@ -11,6 +11,7 @@ import {
 	getListingForDirectory,
 	getViewForPathname,
 	normalizeInputPath,
+	rootDirectory,
 	type TerminalDirectory,
 	type TerminalFile,
 	type TerminalListingItem,
@@ -80,8 +81,6 @@ export default function TerminalShell() {
 	const [commandHistory, setCommandHistory] = useState<string[]>([]);
 	const [historyIndex, setHistoryIndex] = useState<number | null>(null);
 	const [currentHost, setCurrentHost] = useState("domain");
-	const [isMinimized, setIsMinimized] = useState(false);
-	const [isMaximized, setIsMaximized] = useState(false);
 	const [isClosed, setIsClosed] = useState(false);
 
 	const currentView = useMemo(
@@ -118,19 +117,19 @@ export default function TerminalShell() {
 	}, []);
 
 	useEffect(() => {
-		if (isClosed || isMinimized) {
+		if (isClosed) {
 			return;
 		}
 
 		inputRef.current?.focus();
-	}, [isClosed, isMinimized]);
+	}, [isClosed]);
 
 	useEffect(() => {
 		setCurrentHost(getCurrentHost());
 	}, []);
 
 	useEffect(() => {
-		if (isClosed || isMinimized) {
+		if (isClosed) {
 			return;
 		}
 
@@ -142,7 +141,7 @@ export default function TerminalShell() {
 			top: transcriptRef.current.scrollHeight,
 			behavior: "smooth",
 		});
-	}, [entryCount, isClosed, isMinimized]);
+	}, [entryCount, isClosed]);
 
 	useEffect(() => {
 		if (pendingRootLaunchRef.current && viewKey !== "/") {
@@ -427,23 +426,6 @@ export default function TerminalShell() {
 		}
 	}
 
-	function handleMinimize() {
-		if (isClosed) {
-			return;
-		}
-
-		setIsMinimized((previous) => !previous);
-	}
-
-	function handleMaximize() {
-		if (isClosed) {
-			return;
-		}
-
-		setIsMaximized((previous) => !previous);
-		setIsMinimized(false);
-	}
-
 	function handleClose() {
 		entryIdRef.current = 0;
 		lastViewKeyRef.current = null;
@@ -456,24 +438,12 @@ export default function TerminalShell() {
 		setCommandHistory([]);
 		setHistoryIndex(null);
 		setIsClosed(true);
-		setIsMinimized(false);
-		setIsMaximized(false);
 	}
 
 	function handleOpenFromShortcut() {
 		pendingRootLaunchRef.current = true;
 		setIsClosed(false);
-		setIsMinimized(false);
-		setIsMaximized(false);
 		void navigate({ to: "/" });
-	}
-
-	function handleRestore() {
-		if (isClosed) {
-			return;
-		}
-
-		setIsMinimized(false);
 	}
 
 	if (isClosed) {
@@ -497,203 +467,150 @@ export default function TerminalShell() {
 
 	return (
 		<main className="terminal-page">
-			{isMinimized ? (
-				<div className="terminal-minimized-dock">
-					<button
-						type="button"
-						className="terminal-minimized-tab"
-						onClick={handleRestore}
-						aria-label="Restore terminal window"
-						title="Restore terminal window"
-					>
+			<section className="terminal-window">
+				<header className="terminal-titlebar">
+					<div className="terminal-app-frame">
 						<span className="terminal-app-icon" aria-hidden="true">
 							&gt;_
 						</span>
-						<span className="terminal-minimized-label">Carl Grundberg</span>
-					</button>
-					<button
-						type="button"
-						className="terminal-window-control terminal-minimized-close"
-						onClick={handleClose}
-						aria-label="Close terminal window"
-						title="Close"
-					>
-						<X size={14} />
-					</button>
-				</div>
-			) : (
-				<section
-					className={`terminal-window${isMaximized ? " is-maximized" : ""}`}
-				>
-					<header className="terminal-titlebar">
-						<div className="terminal-app-frame">
-							<span className="terminal-app-icon" aria-hidden="true">
-								&gt;_
-							</span>
-							<div className="terminal-title-group">
-								<p className="terminal-title">Carl Grundberg</p>
-							</div>
+						<div className="terminal-title-group">
+							<p className="terminal-title">Carl Grundberg</p>
 						</div>
-						<ThemeToggle />
-						<div className="terminal-window-controls">
-							<button
-								type="button"
-								className="terminal-window-control"
-								onClick={handleMinimize}
-								aria-label="Minimize terminal window"
-								title="Minimize"
-							>
-								<Minimize2 size={14} />
-							</button>
-							<button
-								type="button"
-								className="terminal-window-control"
-								onClick={handleMaximize}
-								aria-label={
-									isMaximized
-										? "Restore terminal window size"
-										: "Maximize terminal window"
-								}
-								title={isMaximized ? "Restore size" : "Maximize"}
-							>
-								<Maximize2 size={14} />
-							</button>
-							<button
-								type="button"
-								className="terminal-window-control"
-								onClick={handleClose}
-								aria-label="Close terminal window"
-								title="Close"
-							>
-								<X size={14} />
-							</button>
-						</div>
-					</header>
+					</div>
+					<ThemeToggle />
+					<div className="terminal-window-controls">
+						<button
+							type="button"
+							className="terminal-window-control"
+							onClick={handleClose}
+							aria-label="Close terminal window"
+							title="Close"
+						>
+							<X size={14} />
+						</button>
+					</div>
+				</header>
 
-					<div ref={transcriptRef} className="terminal-transcript">
-						{entries.map((entry) => {
-							if (entry.type === "command") {
-								return (
-									<div key={entry.id} className="terminal-command">
-										<span className="terminal-prompt" suppressHydrationWarning>
-											{terminalIdentity}
-										</span>
-										<span className="terminal-prompt-path">{entry.cwd}</span>
-										<span className="terminal-prompt-symbol">$</span>
-										<span>{entry.value}</span>
-									</div>
-								);
-							}
-
-							if (entry.type === "listing") {
-								return (
-									<section key={entry.id} className="terminal-block">
-										<div className="terminal-section-label">
-											contents of {entry.pathLabel}
-										</div>
-										<div className="terminal-listing-grid">
-											{entry.items.map((item) => (
-												<button
-													key={`${entry.id}-${item.name}`}
-													type="button"
-													className={`terminal-listing-item is-${item.type}`}
-													onClick={() =>
-														executeCommand(
-															item.type === "directory"
-																? `cd ${getClickCommandPath(
-																		currentDirectorySegments,
-																		entry.directorySegments,
-																		item.name.replace(/\/$/, ""),
-																	)}`
-																: `cat ${getClickCommandPath(
-																		currentDirectorySegments,
-																		entry.directorySegments,
-																		item.name,
-																	)}`,
-														)
-													}
-												>
-													<span className="terminal-listing-name">
-														{item.name}
-													</span>
-													<span className="terminal-listing-summary">
-														{item.summary}
-													</span>
-												</button>
-											))}
-										</div>
-									</section>
-								);
-							}
-
-							if (entry.type === "file") {
-								return (
-									<section
-										key={entry.id}
-										className="terminal-block terminal-file-block"
-									>
-										<div className="terminal-section-label">
-											{entry.pathLabel}/{entry.file.name}
-										</div>
-										<div className="terminal-file-meta">
-											<span>updated {entry.file.updated}</span>
-										</div>
-										<div className="terminal-markdown">
-											<ReactMarkdown>{entry.file.body}</ReactMarkdown>
-										</div>
-									</section>
-								);
-							}
-
+				<div ref={transcriptRef} className="terminal-transcript">
+					{entries.map((entry) => {
+						if (entry.type === "command") {
 							return (
-								<pre
-									key={entry.id}
-									className={`terminal-pre${entry.tone ? ` is-${entry.tone}` : ""}`}
-								>
-									{entry.lines.join("\n")}
-								</pre>
+								<div key={entry.id} className="terminal-command">
+									<span className="terminal-prompt" suppressHydrationWarning>
+										{terminalIdentity}
+									</span>
+									<span className="terminal-prompt-path">{entry.cwd}</span>
+									<span className="terminal-prompt-symbol">$</span>
+									<span>{entry.value}</span>
+								</div>
 							);
-						})}
-					</div>
+						}
 
-					<div className="terminal-quick-actions">
-						{quickCommands.map((command) => (
-							<button
-								key={command}
-								type="button"
-								className="terminal-chip"
-								onClick={() => executeCommand(command)}
+						if (entry.type === "listing") {
+							return (
+								<section key={entry.id} className="terminal-block">
+									<div className="terminal-section-label">
+										contents of {entry.pathLabel}
+									</div>
+									<div className="terminal-listing-grid">
+										{entry.items.map((item) => (
+											<button
+												key={`${entry.id}-${item.name}`}
+												type="button"
+												className={`terminal-listing-item is-${item.type}`}
+												onClick={() =>
+													executeCommand(
+														item.type === "directory"
+															? `cd ${getClickCommandPath(
+																	currentDirectorySegments,
+																	entry.directorySegments,
+																	item.name.replace(/\/$/, ""),
+																)}`
+															: `cat ${getClickCommandPath(
+																	currentDirectorySegments,
+																	entry.directorySegments,
+																	item.name,
+																)}`,
+													)
+												}
+											>
+												<span className="terminal-listing-name">
+													{item.name}
+												</span>
+												<span className="terminal-listing-summary">
+													{item.summary}
+												</span>
+											</button>
+										))}
+									</div>
+								</section>
+							);
+						}
+
+						if (entry.type === "file") {
+							return (
+								<section
+									key={entry.id}
+									className="terminal-block terminal-file-block"
+								>
+									<div className="terminal-section-label">
+										{entry.pathLabel}/{entry.file.name}
+									</div>
+									<div className="terminal-markdown">
+										<ReactMarkdown>{entry.file.body}</ReactMarkdown>
+									</div>
+								</section>
+							);
+						}
+
+						return (
+							<pre
+								key={entry.id}
+								className={`terminal-pre${entry.tone ? ` is-${entry.tone}` : ""}`}
 							>
-								{command}
-							</button>
-						))}
-					</div>
+								{entry.lines.join("\n")}
+							</pre>
+						);
+					})}
+				</div>
 
-					<form className="terminal-input-row" onSubmit={handleSubmit}>
-						<label className="sr-only" htmlFor="terminal-command-input">
-							Terminal command input
-						</label>
-						<span className="terminal-prompt" suppressHydrationWarning>
-							{terminalIdentity}
-						</span>
-						<span className="terminal-prompt-path">{promptPath}</span>
-						<span className="terminal-prompt-symbol">$</span>
-						<input
-							ref={inputRef}
-							id="terminal-command-input"
-							className="terminal-input"
-							autoCapitalize="off"
-							autoComplete="off"
-							autoCorrect="off"
-							spellCheck={false}
-							value={inputValue}
-							onChange={(event) => setInputValue(event.target.value)}
-							onKeyDown={handleKeyDown}
-							placeholder="enter a command"
-						/>
-					</form>
-				</section>
-			)}
+				<div className="terminal-quick-actions">
+					{quickCommands.map((command) => (
+						<button
+							key={command}
+							type="button"
+							className="terminal-chip"
+							onClick={() => executeCommand(command)}
+						>
+							{command}
+						</button>
+					))}
+				</div>
+
+				<form className="terminal-input-row" onSubmit={handleSubmit}>
+					<label className="sr-only" htmlFor="terminal-command-input">
+						Terminal command input
+					</label>
+					<span className="terminal-prompt" suppressHydrationWarning>
+						{terminalIdentity}
+					</span>
+					<span className="terminal-prompt-path">{promptPath}</span>
+					<span className="terminal-prompt-symbol">$</span>
+					<input
+						ref={inputRef}
+						id="terminal-command-input"
+						className="terminal-input"
+						autoCapitalize="off"
+						autoComplete="off"
+						autoCorrect="off"
+						spellCheck={false}
+						value={inputValue}
+						onChange={(event) => setInputValue(event.target.value)}
+						onKeyDown={handleKeyDown}
+						placeholder="enter a command"
+					/>
+				</form>
+			</section>
 		</main>
 	);
 }
@@ -706,7 +623,7 @@ function createInitialEntries(
 		id: nextId(),
 		type: "lines",
 		tone: "muted",
-		lines: ["Connected to current host.", "Type help to list commands."],
+		lines: createWelcomeLines(),
 	};
 
 	return [linesEntry, ...createViewEntries(view, null, nextId)];
@@ -728,29 +645,7 @@ function createViewEntries(
 		];
 	}
 
-	const directorySegments = view.directory.name ? [view.directory.name] : [];
-	const directoryPromptPath = formatPromptPath(directorySegments);
-	const autoOpenFile = view.directory.files.find(
-		(file) => file.name === "index.md",
-	);
-	const autoOpenEntries = autoOpenFile
-		? [
-				{
-					id: nextId(),
-					type: "command" as const,
-					cwd: directoryPromptPath,
-					value: `cat ${autoOpenFile.name}`,
-				},
-				{
-					id: nextId(),
-					type: "file" as const,
-					pathLabel: directoryPromptPath,
-					file: autoOpenFile,
-				},
-			]
-		: [];
-
-	return autoOpenEntries;
+	return [];
 }
 
 function getClickCommandPath(
@@ -809,6 +704,26 @@ function getCurrentHost() {
 	}
 
 	return window.location.hostname || "domain";
+}
+
+function createWelcomeLines() {
+	const homeIndexFile = rootDirectory.files.find((file) => file.name === "index.md");
+	if (!homeIndexFile) {
+		return ["Welcome.", "Type help to list commands."];
+	}
+
+	const contentLines = homeIndexFile.body
+		.split("\n")
+		.map((line) => line.replace(/^#+\s*/, "").trim())
+		.filter(Boolean);
+
+	return [
+		"Last login: today on tty1",
+		"",
+		...contentLines,
+		"",
+		"Type help to list commands.",
+	];
 }
 
 function getViewFromMatches(

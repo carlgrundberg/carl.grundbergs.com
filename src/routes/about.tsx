@@ -9,7 +9,6 @@ import {
 export const aboutIndexFile = createFile({
 	name: "index.md",
 	summary: "Short profile, strengths, and what kind of work to expect.",
-	updated: "2026-03-05",
 	body: markdown([
 		"# Carl Grundberg",
 		"",

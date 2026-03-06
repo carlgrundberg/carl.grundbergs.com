@@ -9,7 +9,6 @@ export const workflowAutomationFile = createFile({
 	name: "workflow-automation.md",
 	summary:
 		"Reduced manual back-office steps through productized internal tools.",
-	updated: "2024-10-09",
 	route: "/projects/workflow-automation",
 	body: markdown([
 		"# Workflow Automation",

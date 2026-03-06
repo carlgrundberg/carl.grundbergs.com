@@ -8,7 +8,6 @@ import {
 export const terminalPortfolioFile = createFile({
 	name: "terminal-portfolio.md",
 	summary: "A route-backed personal site that behaves like a Linux shell.",
-	updated: "2026-03-05",
 	route: "/projects/terminal-portfolio",
 	body: markdown([
 		"# Terminal Portfolio",

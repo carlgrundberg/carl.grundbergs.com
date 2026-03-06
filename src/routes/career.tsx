@@ -12,7 +12,6 @@ import { staffProductEngineerFile } from "./career.staff-product-engineer";
 export const careerIndexFile = createFile({
 	name: "index.md",
 	summary: "Overview of roles, experience areas, and strengths.",
-	updated: "2026-03-05",
 	body: markdown([
 		"# Career overview",
 		"",

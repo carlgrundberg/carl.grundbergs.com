@@ -8,7 +8,6 @@ import {
 export const seniorFullstackEngineerFile = createFile({
 	name: "senior-fullstack-engineer.md",
 	summary: "Owned user-facing flows and the supporting APIs behind them.",
-	updated: "2023-08-01",
 	route: "/career/senior-fullstack-engineer",
 	body: markdown([
 		"# Senior Fullstack Engineer",

@@ -8,7 +8,6 @@ import {
 export const homeIndexFile = createFile({
 	name: "index.md",
 	summary: "Introduction to Carl Grundberg and this personal website.",
-	updated: "2026-03-05",
 	body: markdown([
 		"# Welcome to my personal website",
 		"",

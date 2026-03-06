@@ -8,7 +8,6 @@ import {
 export const frontendEngineerFile = createFile({
 	name: "frontend-engineer.md",
 	summary: "Built polished interfaces and performance-sensitive user journeys.",
-	updated: "2020-02-14",
 	route: "/career/frontend-engineer",
 	body: markdown([
 		"# Frontend Engineer",
