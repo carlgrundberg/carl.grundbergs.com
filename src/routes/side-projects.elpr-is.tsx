@@ -7,19 +7,24 @@ import {
 
 export const elprIsFile = createFile({
 	name: "elpr-is.md",
-	summary: "An older Next.js project with components, pages, and Prisma-backed structure.",
+	summary:
+		"Check today’s Swedish electricity area prices and short trends with a minimal, fast view.",
 	route: "/side-projects/elpr-is",
 	body: markdown([
 		"# elpr.is",
 		"",
+		"- **Live site:** [elpr.is](https://elpr.is)",
 		"- **Repository:** [github.com/carlgrundberg/elpr.is](https://github.com/carlgrundberg/elpr.is)",
-		"- **Stack:** Next.js, JavaScript, CSS, Prisma",
 		"",
-		"## Notes",
+		"## What it’s for",
 		"",
-		"This project looks like an earlier personal or product site built on the classic Next.js pages router structure.",
+		"It helps you quickly see **today’s Swedish elprices and short trends** without wading through heavier energy sites: **bidding areas (SE1–SE4)** and **simple charts** instead of noise.",
 		"",
-		"It includes `components`, `pages`, `lib`, `prisma`, `public`, and `styles`, which suggests a full-stack app shape rather than a simple static site.",
+		"## What you can do",
+		"",
+		"- See **current** area prices and **average** views, including a **30‑day** perspective.",
+		"- **Tomorrow’s prices** when they’re published (usually from around 13:30).",
+		"- Prices are shown with **clear credit** to the upstream data source ([Elpriset just nu.se](https://www.elprisetjustnu.se/)).",
 	]),
 });
 

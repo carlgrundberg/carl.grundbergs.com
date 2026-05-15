@@ -7,19 +7,26 @@ import {
 
 export const olEventsFile = createFile({
 	name: "ol-events.md",
-	summary: "A Next.js app-router project for events, written mostly in TypeScript.",
+	summary:
+		"Find upcoming orienteering races faster, with filters and a location-aware view on Eventor-backed listings.",
 	route: "/side-projects/ol-events",
 	body: markdown([
 		"# ol-events",
 		"",
+		"- **Live site:** [eventor.nu](https://eventor.nu)",
 		"- **Repository:** [github.com/carlgrundberg/ol-events](https://github.com/carlgrundberg/ol-events)",
-		"- **Stack:** Next.js, TypeScript, CSS",
 		"",
-		"## Notes",
+		"## What it’s for",
 		"",
-		"This project uses the newer Next.js app router structure with `app`, `components`, `lib`, and `public`.",
+		"For **people who orienteer**: a quicker way to **discover upcoming races** than clicking around the usual calendar flows—especially when you care about **what’s on**, **what type of race it is**, and **how far away** it is.",
 		"",
-		"It reads like a more modern TypeScript-heavy application and looks like a focused product or event-oriented build.",
+		"## What you can do",
+		"",
+		"- **Browse races** sourced from the **Eventor** world (classifications and disciplines you already use in the sport).",
+		"- **Filter and search** so the list matches how you actually pick races—not a single undifferentiated feed.",
+		"- Use **location** so “**near me**” style discovery is part of the workflow, not an afterthought.",
+		"",
+		"The point is less about novelty and more about **less friction** from intent (“I want a race”) to a short list worth acting on.",
 	]),
 });
 

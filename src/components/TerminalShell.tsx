@@ -665,7 +665,23 @@ function createViewEntries(
 		];
 	}
 
-	return [];
+	const directorySegments = view.directory.name ? [view.directory.name] : [];
+	const cwd = formatPromptPath(directorySegments);
+	return [
+		{
+			id: nextId(),
+			type: "command",
+			cwd,
+			value: "ls",
+		},
+		{
+			id: nextId(),
+			type: "listing",
+			pathLabel: cwd,
+			directorySegments,
+			items: getListingForDirectory(view.directory),
+		},
+	];
 }
 
 function getClickCommandPath(
