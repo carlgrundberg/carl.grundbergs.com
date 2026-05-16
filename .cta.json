@@ -12,7 +12,6 @@
   "version": 1,
   "framework": "react",
   "chosenAddOns": [
-    "biome",
-    "netlify"
+    "biome"
   ]
 }

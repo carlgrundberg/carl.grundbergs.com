@@ -1,5 +1,5 @@
 import { useLocation, useMatches, useNavigate } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { ListTree, ListX, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { TerminalRouteMatchData } from "../lib/terminalContent";
@@ -17,7 +17,22 @@ import {
 	type TerminalView,
 } from "../lib/terminalFs";
 import { HOME_LOGIN_MESSAGE_LINES } from "../routes/index";
+import type { ThemeMode } from "../lib/themeMode";
+import {
+	applyThemeMode,
+	cycleThemeMode,
+	getInitialThemeMode,
+} from "../lib/themeMode";
 import ThemeToggle from "./ThemeToggle";
+
+type HelpRow =
+	| { kind: "title"; text: string }
+	| {
+			kind: "command";
+			run: string;
+			label: string;
+			description: string;
+	  };
 
 type TerminalEntry =
 	| {
@@ -25,6 +40,11 @@ type TerminalEntry =
 			type: "command";
 			cwd: string;
 			value: string;
+	  }
+	| {
+			id: number;
+			type: "help";
+			rows: HelpRow[];
 	  }
 	| {
 			id: number;
@@ -54,17 +74,16 @@ type PendingNavigation =
 			type: "file";
 	  };
 
-const HELP_LINES = [
-	"Supported commands",
-	"help                 show available commands",
-	"ls [path]            list folders and files",
-	"pwd                  print the current directory",
-	"cd <path>            move into a section",
-	"cat <file>           read a file",
-	"uptime               show Carl uptime",
-	"clear                clear the terminal output",
-	"exit                 close the terminal",
-];
+function describeThemeToggleAction(mode: ThemeMode): string {
+	switch (cycleThemeMode(mode)) {
+		case "light":
+			return "Switch to light theme";
+		case "dark":
+			return "Switch to dark theme";
+		default:
+			return "Follow system light or dark theme";
+	}
+}
 
 export default function TerminalShell() {
 	const location = useLocation();
@@ -84,6 +103,20 @@ export default function TerminalShell() {
 	const [historyIndex, setHistoryIndex] = useState<number | null>(null);
 	const [currentHost, setCurrentHost] = useState("domain");
 	const [isClosed, setIsClosed] = useState(false);
+	const [isCompactLayout, setIsCompactLayout] = useState(
+		() =>
+			typeof window !== "undefined" &&
+			window.matchMedia("(max-width: 768px)").matches,
+	);
+	const [autoLs, setAutoLs] = useState(() => getInitialAutoLs());
+	const [themeMode, setThemeMode] = useState<ThemeMode>(() =>
+		getInitialThemeMode(),
+	);
+
+	const themeCycleCommand = useMemo(
+		() => `theme ${cycleThemeMode(themeMode)}`,
+		[themeMode],
+	);
 
 	const currentView = useMemo(
 		() => getViewFromMatches(matches) ?? getViewForPathname(location.pathname),
@@ -109,21 +142,63 @@ export default function TerminalShell() {
 		[currentDirectorySegments, currentView.directory, currentView.selectedFile],
 	);
 
+	const locationCrumbs = useMemo(
+		() => buildLocationCrumbs(currentView),
+		[currentView],
+	);
+
 	const nextEntryId = useCallback(() => {
 		entryIdRef.current += 1;
 		return entryIdRef.current;
 	}, []);
 
 	useEffect(() => {
+		applyThemeMode(themeMode);
+		if (typeof window !== "undefined") {
+			window.localStorage.setItem("theme", themeMode);
+		}
+	}, [themeMode]);
+
+	useEffect(() => {
+		if (themeMode !== "auto") {
+			return;
+		}
+
+		const media = window.matchMedia("(prefers-color-scheme: dark)");
+		const onChange = () => {
+			applyThemeMode("auto");
+		};
+
+		media.addEventListener("change", onChange);
+		return () => {
+			media.removeEventListener("change", onChange);
+		};
+	}, [themeMode]);
+
+	useEffect(() => {
 		if (isClosed) {
 			return;
 		}
 
+		if (isCompactLayout) {
+			return;
+		}
+
 		inputRef.current?.focus();
-	}, [isClosed]);
+	}, [isClosed, isCompactLayout]);
 
 	useEffect(() => {
 		setCurrentHost(getCurrentHost());
+	}, []);
+
+	useEffect(() => {
+		const mq = window.matchMedia("(max-width: 768px)");
+		function update() {
+			setIsCompactLayout(mq.matches);
+		}
+
+		mq.addEventListener("change", update);
+		return () => mq.removeEventListener("change", update);
 	}, []);
 
 	useEffect(() => {
@@ -154,7 +229,7 @@ export default function TerminalShell() {
 			lastViewKeyRef.current =
 				initialView.selectedFile?.route ?? initialView.directory.route;
 			pendingRootLaunchRef.current = false;
-			setEntries(createInitialEntries(initialView, nextEntryId));
+			setEntries(createInitialEntries(initialView, nextEntryId, autoLs));
 			return;
 		}
 
@@ -170,11 +245,12 @@ export default function TerminalShell() {
 				currentView,
 				pendingNavigationRef.current,
 				nextEntryId,
+				autoLs,
 			),
 		]);
 
 		pendingNavigationRef.current = null;
-	}, [currentView, nextEntryId, viewKey]);
+	}, [autoLs, currentView, nextEntryId, viewKey]);
 
 	function appendEntries(newEntries: TerminalEntry[]) {
 		setEntries((previous) => [...previous, ...newEntries]);
@@ -228,8 +304,11 @@ export default function TerminalShell() {
 					},
 					{
 						id: nextEntryId(),
-						type: "lines",
-						lines: HELP_LINES,
+						type: "help",
+						rows: buildHelpRows(
+							currentDirectorySegments,
+							currentView.directory,
+						),
 					},
 				]);
 				return;
@@ -257,6 +336,106 @@ export default function TerminalShell() {
 			case "exit": {
 				appendCommand(trimmed);
 				handleClose();
+				return;
+			}
+			case "theme": {
+				const sub = argument.trim().toLowerCase();
+				if (sub !== "light" && sub !== "dark" && sub !== "auto") {
+					appendError(
+						trimmed,
+						"theme: usage: theme light | theme dark | theme auto",
+					);
+					return;
+				}
+
+				const confirm =
+					sub === "auto"
+						? "Theme: auto (follows system light/dark)."
+						: `Theme: ${sub}.`;
+				appendEntries([
+					{
+						id: nextEntryId(),
+						type: "command",
+						cwd: promptPath,
+						value: trimmed,
+					},
+					{
+						id: nextEntryId(),
+						type: "lines",
+						tone: "muted",
+						lines: [confirm],
+					},
+				]);
+				setThemeMode(sub as ThemeMode);
+				return;
+			}
+			case "autols": {
+				const sub = argument.trim().toLowerCase();
+				if (sub === "on" || sub === "true" || sub === "1") {
+					appendEntries([
+						{
+							id: nextEntryId(),
+							type: "command",
+							cwd: promptPath,
+							value: trimmed,
+						},
+						{
+							id: nextEntryId(),
+							type: "lines",
+							tone: "muted",
+							lines: ["Auto-list on folder change: on."],
+						},
+					]);
+					setAutoLs(true);
+					persistTerminalAutoLs(true);
+					return;
+				}
+				if (sub === "off" || sub === "false" || sub === "0") {
+					appendEntries([
+						{
+							id: nextEntryId(),
+							type: "command",
+							cwd: promptPath,
+							value: trimmed,
+						},
+						{
+							id: nextEntryId(),
+							type: "lines",
+							tone: "muted",
+							lines: ["Auto-list on folder change: off."],
+						},
+					]);
+					setAutoLs(false);
+					persistTerminalAutoLs(false);
+					return;
+				}
+				if (!sub) {
+					const next = !autoLs;
+					const canonical = `autols ${next ? "on" : "off"}`;
+					appendEntries([
+						{
+							id: nextEntryId(),
+							type: "command",
+							cwd: promptPath,
+							value: canonical,
+						},
+						{
+							id: nextEntryId(),
+							type: "lines",
+							tone: "muted",
+							lines: [
+								next
+									? "Auto-list on folder change: on."
+									: "Auto-list on folder change: off.",
+							],
+						},
+					]);
+					setAutoLs(next);
+					persistTerminalAutoLs(next);
+					return;
+				}
+
+				appendError(trimmed, "autols: usage: autols on | autols off");
 				return;
 			}
 			case "uptime": {
@@ -345,7 +524,12 @@ export default function TerminalShell() {
 
 				if (targetRoute === viewKey && !currentView.selectedFile) {
 					appendEntries(
-						createViewEntries(currentView, { type: "directory" }, nextEntryId),
+						createViewEntries(
+							currentView,
+							{ type: "directory" },
+							nextEntryId,
+							autoLs,
+						),
 					);
 					return;
 				}
@@ -395,6 +579,16 @@ export default function TerminalShell() {
 		}
 	}
 
+	function runTerminalCommand(rawValue: string) {
+		const trimmed = rawValue.trim();
+		if (!trimmed) {
+			return;
+		}
+
+		executeCommand(trimmed);
+		setCommandHistory((previous) => [...previous, trimmed]);
+	}
+
 	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
@@ -403,8 +597,7 @@ export default function TerminalShell() {
 			return;
 		}
 
-		executeCommand(trimmed);
-		setCommandHistory((previous) => [...previous, trimmed]);
+		runTerminalCommand(trimmed);
 		setHistoryIndex(null);
 		setInputValue("");
 	}
@@ -496,14 +689,44 @@ export default function TerminalShell() {
 							<p className="terminal-title">Carl Grundberg</p>
 						</div>
 					</div>
-					<ThemeToggle />
+					<div className="terminal-titlebar-tools">
+						<button
+							type="button"
+							className={`terminal-auto-ls-toggle${autoLs ? "" : " is-off"}`}
+							onClick={() =>
+								runTerminalCommand(`autols ${autoLs ? "off" : "on"}`)
+							}
+							aria-pressed={autoLs}
+							title={
+								autoLs
+									? "Turn off auto list on folder change"
+									: "Turn on auto list on folder change"
+							}
+							aria-label={
+								autoLs
+									? "Turn off auto list on folder change"
+									: "Turn on auto list on folder change"
+							}
+						>
+							{autoLs ? (
+								<ListTree size={16} aria-hidden="true" />
+							) : (
+								<ListX size={16} aria-hidden="true" />
+							)}
+						</button>
+						<ThemeToggle
+							mode={themeMode}
+							label={describeThemeToggleAction(themeMode)}
+							onCycle={() => runTerminalCommand(themeCycleCommand)}
+						/>
+					</div>
 					<div className="terminal-window-controls">
 						<button
 							type="button"
 							className="terminal-window-control"
-							onClick={handleClose}
-							aria-label="Close terminal window"
-							title="Close"
+							onClick={() => runTerminalCommand("exit")}
+							aria-label="Close the terminal"
+							title="Close the terminal"
 						>
 							<X size={14} />
 						</button>
@@ -582,6 +805,50 @@ export default function TerminalShell() {
 							);
 						}
 
+						if (entry.type === "help") {
+							return (
+								<div
+									key={entry.id}
+									className="terminal-help"
+									role="region"
+									aria-label="Supported commands"
+								>
+									{entry.rows.map((row, index) => {
+										if (row.kind === "title") {
+											return (
+												<p
+													key={`title-${entry.id}-${index}`}
+													className="terminal-help-title"
+												>
+													{row.text}
+												</p>
+											);
+										}
+
+										return (
+											<div
+												key={`cmd-${entry.id}-${index}`}
+												className="terminal-help-row"
+											>
+												<button
+													type="button"
+													className="terminal-help-cmd"
+													onClick={() => executeCommand(row.run)}
+													title={row.description}
+													aria-label={row.description}
+												>
+													{row.label}
+												</button>
+												<span className="terminal-help-desc">
+													{row.description}
+												</span>
+											</div>
+										);
+									})}
+								</div>
+							);
+						}
+
 						return (
 							<pre
 								key={entry.id}
@@ -592,6 +859,39 @@ export default function TerminalShell() {
 						);
 					})}
 				</div>
+
+				<nav
+					className="terminal-location-nav"
+					aria-label="Current location"
+				>
+					<ol className="terminal-breadcrumb">
+						{locationCrumbs.map((crumb, index) => {
+							const isLast = index === locationCrumbs.length - 1;
+							return (
+								<li key={`${index}-${crumb.label}`}>
+									{isLast ? (
+										<span
+											className="terminal-breadcrumb-current"
+											aria-current="page"
+										>
+											{crumb.label}
+										</span>
+									) : (
+										<button
+											type="button"
+											className="terminal-breadcrumb-link"
+											onClick={() =>
+												crumb.to && void navigate({ to: crumb.to })
+											}
+										>
+											{crumb.label}
+										</button>
+									)}
+								</li>
+							);
+						})}
+					</ol>
+				</nav>
 
 				<div className="terminal-quick-actions">
 					{quickCommands.map((command) => (
@@ -637,6 +937,7 @@ export default function TerminalShell() {
 function createInitialEntries(
 	view: ReturnType<typeof getViewForPathname>,
 	nextId: () => number,
+	autoLs: boolean,
 ): TerminalEntry[] {
 	const linesEntry: TerminalEntry = {
 		id: nextId(),
@@ -645,13 +946,14 @@ function createInitialEntries(
 		lines: createWelcomeLines(),
 	};
 
-	return [linesEntry, ...createViewEntries(view, null, nextId)];
+	return [linesEntry, ...createViewEntries(view, null, nextId, autoLs)];
 }
 
 function createViewEntries(
 	view: ReturnType<typeof getViewForPathname>,
 	_pendingNavigation: PendingNavigation | null,
 	nextId: () => number,
+	autoLs: boolean,
 ): TerminalEntry[] {
 	if (view.selectedFile) {
 		const directorySegments = view.directory.name ? [view.directory.name] : [];
@@ -663,6 +965,10 @@ function createViewEntries(
 				file: view.selectedFile,
 			},
 		];
+	}
+
+	if (!autoLs) {
+		return [];
 	}
 
 	const directorySegments = view.directory.name ? [view.directory.name] : [];
@@ -705,6 +1011,127 @@ function arePathSegmentsEqual(left: string[], right: string[]) {
 	return left.every((segment, index) => segment === right[index]);
 }
 
+function buildHelpRows(
+	currentDirectorySegments: string[],
+	directory: TerminalDirectory,
+): HelpRow[] {
+	const cdExample =
+		currentDirectorySegments.length > 0
+			? "cd .."
+			: directory.directories[0]
+				? `cd ${directory.directories[0].name}`
+				: "cd /";
+
+	const nonIndexFiles = directory.files.filter((f) => f.name !== "index.md");
+	const pick =
+		nonIndexFiles[0] ?? directory.files[0] ?? { name: "about-me.md" };
+	const catExample = `cat ${pick.name}`;
+
+	return [
+		{ kind: "title", text: "Supported commands" },
+		{
+			kind: "command",
+			run: "help",
+			label: "help",
+			description: "show available commands",
+		},
+		{
+			kind: "command",
+			run: "ls",
+			label: "ls [path]",
+			description: "list folders and files",
+		},
+		{
+			kind: "command",
+			run: "pwd",
+			label: "pwd",
+			description: "print the current directory",
+		},
+		{
+			kind: "command",
+			run: cdExample,
+			label: "cd <path>",
+			description: "move into a section",
+		},
+		{
+			kind: "command",
+			run: catExample,
+			label: "cat <file>",
+			description: "read a file",
+		},
+		{
+			kind: "command",
+			run: "uptime",
+			label: "uptime",
+			description: "show Carl uptime",
+		},
+		{
+			kind: "command",
+			run: "theme auto",
+			label: "theme light|dark|auto",
+			description: "set color theme",
+		},
+		{
+			kind: "command",
+			run: "autols on",
+			label: "autols on|off",
+			description: "auto-run ls when the folder changes",
+		},
+		{
+			kind: "command",
+			run: "clear",
+			label: "clear",
+			description: "clear the terminal output",
+		},
+		{
+			kind: "command",
+			run: "exit",
+			label: "exit",
+			description: "close the terminal",
+		},
+	];
+}
+
+function formatFileBreadcrumbLabel(file: TerminalFile): string {
+	const base = file.name.replace(/\.md$/i, "");
+	if (base === "index") {
+		return "Overview";
+	}
+
+	return base
+		.split("-")
+		.filter(Boolean)
+		.map(
+			(part) =>
+				part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
+		)
+		.join(" ");
+}
+
+function buildLocationCrumbs(
+	view: TerminalView,
+): { label: string; to?: string }[] {
+	const crumbs: { label: string; to?: string }[] = [
+		{ label: "~", to: "/" },
+	];
+
+	if (view.directory.route !== "/") {
+		crumbs.push({
+			label: view.directory.title,
+			to: view.directory.route,
+		});
+	}
+
+	if (view.selectedFile) {
+		crumbs.push({
+			label: formatFileBreadcrumbLabel(view.selectedFile),
+			to: view.selectedFile.route,
+		});
+	}
+
+	return crumbs;
+}
+
 function getQuickCommands(
 	currentDirectorySegments: string[],
 	directory: TerminalDirectory,
@@ -713,7 +1140,7 @@ function getQuickCommands(
 	const commands = ["help", "ls", "uptime"];
 
 	if (currentDirectorySegments.length > 0) {
-		commands.push("pwd", "cd ..");
+		commands.push("cd ..");
 	}
 
 	const directoryCommands = directory.directories
@@ -740,6 +1167,30 @@ function getCurrentHost() {
 	}
 
 	return window.location.hostname || "domain";
+}
+
+function getInitialAutoLs(): boolean {
+	if (typeof window === "undefined") {
+		return true;
+	}
+
+	const stored = window.localStorage.getItem("terminalAutoLs");
+	if (stored === "false") {
+		return false;
+	}
+	if (stored === "true") {
+		return true;
+	}
+
+	return true;
+}
+
+function persistTerminalAutoLs(value: boolean) {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	window.localStorage.setItem("terminalAutoLs", String(value));
 }
 
 function createWelcomeLines() {
